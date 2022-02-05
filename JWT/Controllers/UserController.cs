@@ -18,29 +18,33 @@ namespace JWT.Controllers
 
         private readonly ILogger<UserController> _logger;
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signManager;
+        private readonly SignInManager<AppUser> _signInManager;
 
         public UserController(ILogger<UserController> logger,UserManager<AppUser> userManager, SignInManager<AppUser> signManager)
         {
-            userManager = userManager;
-            signManager = signManager;
+            _userManager = userManager;
+            _signInManager = signManager;
             _logger = logger;
         }
-
+        [HttpPost("RegisterUser")]
         public async Task<object> RegisterUser([FromBody] AddUpdateRegisterUserBindingModel model) {
-
-            var user = new AppUser() { FullName = model.FullName, Email = model.Email, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow };
-
-
-             var result = await _userManager.CreateAsync(user, model.Password);
-            if(result.Succeeded)
+            try
             {
-                return await Task.FromResult("Thank You for registering to help me");
+                var user = new AppUser() { FullName = model.FullName, Email = model.Email,UserName= model.Email, DateCreated = DateTime.UtcNow, DateModified = DateTime.UtcNow };
+
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    return await Task.FromResult("Thank You for registering to help me");
+                }
+                return await Task.FromResult(string.Join(",", result.Errors.Select(x => x.Description).ToArray()));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(ex.Message);
             }
-            return await Task.FromResult(string.Join(",",result.Errors.Select(x=>x.Description.ToArray())));
-
-        }
-
+            }
+            
        
     }
 }
